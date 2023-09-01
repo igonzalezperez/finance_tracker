@@ -1,0 +1,51 @@
+# Python
+*.pyc
+*.pyo
+*.egg-info/
+__pycache__/
+*.egg
+*.log
+
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+media
+
+# Virtualenv
+venv/
+*.venv
+*.virtenv
+*.venv/
+
+# IDE/Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*.bak
+*.bak1
+*.bak2
+*.bak3
+*.ds_store
+.DS_Store
+
+# Databases
+*.db
+*.sqlite3
+
+# Others
+*.pid
+*.log
+*.bak
+*.dump
+
+# OS generated
+*.DS_Store?
+ehthumbs.db
+Icon?
+Thumbs.db
