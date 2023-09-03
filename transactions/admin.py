@@ -1,20 +1,24 @@
 from django.contrib import admin
-from .models import Transaction, Category
+from django.utils.html import format_html
+from .models import Transaction, Category, Currency
 
 
 class TransactionAdmin(admin.ModelAdmin):
+    ordering = ["-date"]  # Show latest transactions first
     # Define the fields to be displayed in the list view
     list_display = (
         "id",
-        "type",
+        "formatted_date",
         "amount",
-        "date",
-        "comment",
-        "payment_method",
-        "qty",
-        "receipt",
+        "type",
         "item",
-        "linked_transaction_id",
+        "qty",
+        "vendor",
+        "categories_list",
+        "payment_method",
+        "currency",
+        "comment",
+        "formatted_created_at",
     )
 
     # Provide filtering options in the admin list view
@@ -26,6 +30,18 @@ class TransactionAdmin(admin.ModelAdmin):
 
     # Define search fields for the search bar in the admin interface
     search_fields = ("item", "comment", "categories__name")
+
+    def formatted_date(self, obj):
+        return format_html("<span>{}</span>", obj.date.strftime("%Y-%m-%d"))
+
+    formatted_date.short_description = "Date"
+
+    def formatted_created_at(self, obj):
+        return format_html(
+            "<span>{}</span>", obj.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        )
+
+    formatted_created_at.short_description = "Created At"
 
     # This method joins the related categories and displays them as a comma-separated list
     def categories_list(self, obj):
@@ -45,3 +61,4 @@ class CategoryAdmin(admin.ModelAdmin):
 # Register the models and their associated admin classes
 admin.site.register(Transaction, TransactionAdmin)
 admin.site.register(Category, CategoryAdmin)
+admin.site.register(Currency)
