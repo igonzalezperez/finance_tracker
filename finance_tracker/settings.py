@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-bj%&+tpmw3$u0ugv*!tkhlnbhva1&z=u=rj8tweg7@@s(mdrgd"
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "transactions",
     "debug_toolbar",
+    "rest_framework",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -51,6 +53,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "finance_tracker.urls"
@@ -88,19 +91,13 @@ DATABASES = {
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
+BASE_VALIDATOR = "django.contrib.auth.password_validation."
+
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
+    {"NAME": BASE_VALIDATOR + "UserAttributeSimilarityValidator"},
+    {"NAME": BASE_VALIDATOR + "MinimumLengthValidator"},
+    {"NAME": BASE_VALIDATOR + "CommonPasswordValidator"},
+    {"NAME": BASE_VALIDATOR + "NumericPasswordValidator"},
 ]
 
 
@@ -129,4 +126,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 INTERNAL_IPS = [
     "127.0.0.1",
     "localhost",
+]
+
+
+# Allow all domains to access your API (not recommended for production)
+CORS_ALLOW_ALL_ORIGINS = True
+
+# OR, specify the domains:
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # React's default port
 ]
