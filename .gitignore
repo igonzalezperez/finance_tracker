@@ -43,6 +43,7 @@ venv/
 *.log
 *.bak
 *.dump
+.env
 
 # OS generated
 *.DS_Store?
