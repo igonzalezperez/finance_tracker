@@ -15,20 +15,30 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.urls import path, include
 from django.conf import settings
-from django.urls import include, path
-from django.http import HttpResponse
 
-
-def home_view(request):
-    return HttpResponse("Welcome to my finance app!")
-
+from transactions import views
 
 urlpatterns = [
-    path("", home_view, name="home"),
     path("admin/", admin.site.urls),
+    path("", views.TransactionListView.as_view(), name="transaction_list"),
+    path(
+        "transaction/add/",
+        views.TransactionCreateView.as_view(),
+        name="transaction_add",
+    ),
+    path(
+        "transaction/<int:pk>/edit/",
+        views.TransactionUpdateView.as_view(),
+        name="transaction_edit",
+    ),
+    path(
+        "transaction/<int:pk>/delete/",
+        views.TransactionDeleteView.as_view(),
+        name="transaction_delete",
+    ),
 ]
-
 
 if settings.DEBUG:
     import debug_toolbar

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Transactions</h2>
+<table class="table table-dark table-striped">
+    <thead>
+        <tr>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <!-- Add other columns as needed -->
+        </tr>
+    </thead>
+    <tbody>
+        {% for transaction in transaction_list %}
+        <tr>
+            <td>{{ transaction.type }}</td>
+            <td>{{ transaction.amount }}</td>
+            <td>{{ transaction.date }}</td>
+            <!-- Add other data columns as needed -->
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

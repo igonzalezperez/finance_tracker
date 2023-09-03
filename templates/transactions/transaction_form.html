@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Add/Edit Transaction</h2>
+<form method="post" class="mt-4">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <!-- You can use other form formats like form.as_table or customize the rendering for better design with Bootstrap -->
+    <button type="submit" class="btn btn-success">Save</button>
+</form>
+{% endblock %}
