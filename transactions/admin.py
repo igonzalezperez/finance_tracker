@@ -52,7 +52,7 @@ class TransactionAdmin(admin.ModelAdmin):
 
 class CategoryAdmin(admin.ModelAdmin):
     # Define the fields to be displayed in the list view for categories
-    list_display = ("id", "name")
+    list_display = ("id", "name", "color")
 
     # Define search fields for the search bar in the admin interface
     search_fields = ("name",)
