@@ -19,24 +19,35 @@ from django.urls import path, include
 from django.conf import settings
 
 from transactions import views
+from rest_framework.authtoken.views import obtain_auth_token
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", views.TransactionListView.as_view(), name="transaction_list"),
     path(
-        "transaction/add/",
-        views.TransactionCreateView.as_view(),
-        name="transaction_add",
+        "api/v1/validate-token/",
+        views.ValidateTokenView.as_view(),
+        name="validate-token",
+    ),
+    path("api/v1/api-token-auth/", obtain_auth_token, name="api_token_auth"),
+    path(
+        "",
+        views.TransactionList.as_view(),
+        name="transaction-list",
     ),
     path(
-        "transaction/<int:pk>/edit/",
-        views.TransactionUpdateView.as_view(),
-        name="transaction_edit",
+        "api/v1/transactions/",
+        views.TransactionList.as_view(),
+        name="transaction-list",
     ),
     path(
-        "transaction/<int:pk>/delete/",
-        views.TransactionDeleteView.as_view(),
-        name="transaction_delete",
+        "api/v1/transactions/<int:pk>/",
+        views.TransactionDetail.as_view(),
+        name="transaction-detail",
+    ),
+    path(
+        "api/v1/field-metadata/",
+        views.FieldsMetadataView.as_view(),
+        name="field_metadata",
     ),
 ]
 
