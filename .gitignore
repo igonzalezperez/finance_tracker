@@ -50,3 +50,4 @@ venv/
 ehthumbs.db
 Icon?
 Thumbs.db
+.pylintrc
