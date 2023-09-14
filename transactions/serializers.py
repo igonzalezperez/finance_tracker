@@ -1,28 +1,15 @@
 from rest_framework import serializers
-from .models import Transaction, Category
+from .models import Transaction, Tag, CurrencyCode, Vendor
 
 
-class CategorySerializer(serializers.ModelSerializer):
-    """
-    Category Serializer
-
-    Serializes the Category model to expose category name in the API.
-    """
-
+class TagSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Category
+        model = Tag
         fields = ["id", "name", "color"]
 
 
 class TransactionSerializer(serializers.ModelSerializer):
-    """
-    Transaction Serializer
-
-    Serializes the Transaction model to expose necessary fields in the API. It
-    uses CategorySerializer to convert category IDs to human-readable names.
-    """
-
-    categories = CategorySerializer(many=True, read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
 
     class Meta:
         model = Transaction
@@ -41,41 +28,52 @@ class TransactionSerializer(serializers.ModelSerializer):
             "currency",
             "vendor",
             "linked_transaction",
-            "categories",
+            "tags",
         ]
 
     def create(self, validated_data):
-        """
-        Create Transaction instance.
+        tags_data = validated_data.pop("tags")
+        currency_data = validated_data.pop("currency")
+        vendor_data = validated_data.pop("vendor")
 
-        Overriding the create method to handle nested categories data.
-        """
-        categories_data = validated_data.pop("categories")
+        # Handle currency
+        if currency_data and not isinstance(currency_data, CurrencyCode):
+            currency, _ = CurrencyCode.objects.get_or_create(**currency_data)
+            validated_data["currency"] = currency
+
+        # Handle vendor
+        if vendor_data and not isinstance(vendor_data, Vendor):
+            vendor, _ = Vendor.objects.get_or_create(**vendor_data)
+            validated_data["vendor"] = vendor
+
         transaction = Transaction.objects.create(**validated_data)
 
-        for category_data in categories_data:
-            Category.objects.create(transaction=transaction, **category_data)
+        # Handle tags
+        for tag_data in tags_data:
+            tag, _ = Tag.objects.get_or_create(**tag_data)
+            transaction.tags.add(tag)
+
         return transaction
 
     def update(self, instance, validated_data):
         """
         Update Transaction instance.
 
-        Overriding the update method to handle nested categories data.
+        Overriding the update method to handle nested tags data.
         """
-        categories_data = validated_data.pop("categories")
+        tags_data = validated_data.pop("tags")
 
         # Updating standard fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
 
-        # Handling categories update
-        for category_data in categories_data:
-            category_id = category_data.get("id")
-            category = instance.categories.get(id=category_id)
-            for attr, value in category_data.items():
-                setattr(category, attr, value)
-            category.save()
+        # Handling tags update
+        for tag_data in tags_data:
+            tag_id = tag_data.get("id")
+            tag = instance.tags.get(id=tag_id)
+            for attr, value in tag_data.items():
+                setattr(tag, attr, value)
+            tag.save()
 
         return instance

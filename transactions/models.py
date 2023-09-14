@@ -1,78 +1,130 @@
-"""
-Models for the Finance Tracker application.
-
-This module defines the core data structures for the application,
-including Vendors, Currencies, Categories, and Transactions.
-Each model represents a table in the database and encapsulates
-the relationships and attributes specific to its respective entity.
-
-- `Vendor`: Represents businesses or individuals where transactions take place.
-- `Currency`: Defines various currencies using ISO 4217 codes.
-- `Category`: Categorizes transactions (e.g., groceries, utilities).
-- `Transaction`: Core entity representing individual financial transactions.
-
-"""
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+import uuid
 
 
-class Vendor(models.Model):
-    """
-    Represents a vendor or a supplier.
-    """
+class BaseModel(models.Model):
+    uuid = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+        unique=True,
+    )
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(auto_now=True, editable=False)
+    deleted_at = models.DateTimeField(null=True, blank=True, editable=False)
+    is_deleted = models.BooleanField(default=False, editable=False)
+    created_by = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="%(class)s_created_by",
+        editable=False,
+    )
+    updated_by = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="%(class)s_updated_by",
+        editable=False,
+    )
 
-    name = models.CharField(max_length=255, unique=True)
-    details = models.TextField(blank=True)
+    class Meta:
+        abstract = True
+
+    def soft_delete(self, deleted_by=None):
+        if not self.is_deleted:
+            self.is_deleted = True
+            self.deleted_at = timezone.now()
+            if deleted_by:
+                self.updated_by = deleted_by
+            self.save()
+
+    def undelete(self):
+        if self.is_deleted:
+            self.is_deleted = False
+            self.deleted_at = None
+            self.updated_by = None
+            self.save()
+
+
+class Vendor(BaseModel):
+    name = models.CharField(max_length=255)
 
     def __str__(self):
-        return str(self.name)
+        return self.name
 
 
-class Currency(models.Model):
-    """
-    Represents an ISO 4217 currency code and its full name.
-    """
+class Branch(BaseModel):
+    vendor = models.ForeignKey(
+        Vendor,
+        on_delete=models.CASCADE,
+        related_name="branches",
+        to_field="uuid",
+    )
+    name = models.CharField(max_length=255)
 
-    # ISO 4217 currency codes
+    class Meta:
+        verbose_name_plural = "Branches"
+
+    def __str__(self):
+        return f"{self.name} - {self.vendor.name}"
+
+
+class CurrencyCode(BaseModel):
     code = models.CharField(max_length=3, unique=True)
-    name = models.CharField(max_length=50)
-
-    def __str__(self):
-        return str(self.code)
 
     class Meta:
-        """
-        Meta configuration for the Currency model.
-        """
-
-        verbose_name_plural = "Currencies"
-
-
-class Category(models.Model):
-    """
-    Represents a category that a transaction can belong to.
-    """
-
-    name = models.CharField(max_length=50)
-    description = models.TextField(blank=True)
-    color = models.CharField(max_length=7, default="#FFFFFF")  # Hex color code
+        verbose_name_plural = "CurrencyCodes"
 
     def __str__(self):
-        return str(self.name)
+        return self.code
+
+
+class CurrencyData(BaseModel):
+    country = models.CharField(max_length=100)
+    currency_name = models.CharField(max_length=100)
+    currency_code = models.ForeignKey(CurrencyCode, on_delete=models.CASCADE)
 
     class Meta:
-        """
-        Meta configuration for the Category model.
-        """
+        unique_together = ("country", "currency_name", "currency_code")
+        verbose_name_plural = "CurrenciesData"
 
+    def __str__(self):
+        return f"{self.country} - {self.currency_name} - {self.currency_code}"
+
+
+class Category(BaseModel):
+    name = models.CharField(max_length=200)
+    parent = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
+
+    class Meta:
         verbose_name_plural = "Categories"
+        unique_together = ("parent", "name")
+
+    def __str__(self):
+        return self.name
 
 
-class Transaction(models.Model):
-    """
-    Represents a financial transaction.
-    """
+class Tag(BaseModel):
+    name = models.CharField(max_length=255)
 
+    class Meta:
+        verbose_name_plural = "Tags"
+
+    def __str__(self):
+        return f"{self.name}"
+
+
+class Transaction(BaseModel):
     # Choices for the transaction type
     INCOME = "Income"
     EXPENSE = "Expense"
@@ -81,16 +133,12 @@ class Transaction(models.Model):
         (EXPENSE, "Expense"),
     ]
     user = models.ForeignKey(
-        User,
+        get_user_model(),
         on_delete=models.CASCADE,
         verbose_name="User",
     )
 
     date = models.DateField(verbose_name="Date")
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name="Created At",
-    )
     amount = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -103,17 +151,18 @@ class Transaction(models.Model):
         verbose_name="Type",
     )
     currency = models.ForeignKey(
-        Currency,
+        CurrencyCode,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         verbose_name="Currency",
+        to_field="uuid",
     )
     item = models.CharField(
         max_length=255,
         verbose_name="Item",
     )
-    qty = models.PositiveIntegerField(
+    quantity = models.PositiveIntegerField(
         default=1,
         verbose_name="Quantity",
     )
@@ -121,13 +170,27 @@ class Transaction(models.Model):
         Vendor,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True,
         verbose_name="Vendor",
+        to_field="uuid",
     )
-    categories = models.ManyToManyField(
+    branch = models.ForeignKey(
+        Branch,
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name="Branch",
+        to_field="uuid",
+    )
+    category = models.ForeignKey(
         Category,
-        related_name="transactions",
-        verbose_name="Categories",
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name="Category",
+        to_field="uuid",
+    )
+    tags = models.ManyToManyField(
+        Tag,
+        blank=True,
+        verbose_name="Tags",
     )
     receipt = models.FileField(
         upload_to="receipts/",
@@ -141,6 +204,7 @@ class Transaction(models.Model):
         blank=True,
         null=True,
         verbose_name="Linked Transaction",
+        to_field="uuid",
     )  # Link to another transaction if needed
     payment_method = models.CharField(
         max_length=50,
@@ -149,12 +213,17 @@ class Transaction(models.Model):
     )  # Can be expanded with choices if required
     comment = models.TextField(
         blank=True,
-        verbose_name="Method",
+        verbose_name="Comment",
     )
 
     @property
     def verbose_names(self):
-        return {field.name: field.verbose_name for field in Transaction._meta.fields}
+        return {f.name: f.verbose_name for f in Transaction._meta.fields}
 
     def __str__(self):
-        return f"{self.item} - {self.amount} ({self.date})"
+        return f"{self.date} - {self.amount} - {self.item} - {self.type}"
+
+
+class TransactionTag(BaseModel):
+    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)

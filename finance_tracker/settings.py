@@ -38,12 +38,15 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "accounts",
     "transactions",
     "debug_toolbar",
     "rest_framework",
+    "drf_yasg",
     "corsheaders",
     "rest_framework.authtoken",
 ]
+AUTH_USER_MODEL = "accounts.User"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -100,7 +103,6 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": BASE_VALIDATOR + "CommonPasswordValidator"},
     {"NAME": BASE_VALIDATOR + "NumericPasswordValidator"},
 ]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -169,4 +171,11 @@ LOGGING = {
             "propagate": True,
         },
     },
+}
+
+SWAGGER_SETTINGS = {
+    "SECURITY_DEFINITIONS": {
+        "DRF Token": {"type": "apiKey", "name": "Authorization", "in": "header"},
+        "basic": {"type": "basic"},
+    }
 }

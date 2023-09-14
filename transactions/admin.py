@@ -1,64 +1,99 @@
 from django.contrib import admin
-from django.utils.html import format_html
-from .models import Transaction, Category, Currency
-
-
-class TransactionAdmin(admin.ModelAdmin):
-    ordering = ["-date"]  # Show latest transactions first
-    # Define the fields to be displayed in the list view
-    list_display = (
-        "id",
-        "formatted_date",
-        "amount",
-        "type",
-        "item",
-        "qty",
-        "vendor",
-        "categories_list",
-        "payment_method",
-        "currency",
-        "comment",
-        "formatted_created_at",
-    )
-
-    # Provide filtering options in the admin list view
-    list_filter = (
-        "type",
-        "date",
-        "categories__name",
-    )
-
-    # Define search fields for the search bar in the admin interface
-    search_fields = ("item", "comment", "categories__name")
-
-    def formatted_date(self, obj):
-        return format_html("<span>{}</span>", obj.date.strftime("%Y-%m-%d"))
-
-    formatted_date.short_description = "Date"
-
-    def formatted_created_at(self, obj):
-        return format_html(
-            "<span>{}</span>", obj.created_at.strftime("%Y-%m-%d %H:%M:%S")
-        )
-
-    formatted_created_at.short_description = "Created At"
-
-    # This method joins the related categories and displays them as a comma-separated list
-    def categories_list(self, obj):
-        return ", ".join([category.name for category in obj.categories.all()])
-
-    categories_list.short_description = "Categories"
+from .models import (
+    Vendor,
+    CurrencyCode,
+    CurrencyData,
+    Tag,
+    Transaction,
+    TransactionTag,
+    Category,
+    Branch,
+)
 
 
 class CategoryAdmin(admin.ModelAdmin):
-    # Define the fields to be displayed in the list view for categories
-    list_display = ("id", "name", "color")
+    ordering = ["parent"]
+    list_display = ("uuid", "parent", "name", "created_at")
 
-    # Define search fields for the search bar in the admin interface
-    search_fields = ("name",)
+
+class VendorAdmin(admin.ModelAdmin):
+    ordering = ["name"]
+    list_display = ("uuid", "name", "created_at")
+
+
+class BranchAdmin(admin.ModelAdmin):
+    ordering = ["name"]
+    list_display = ("uuid", "name", "get_vendor", "created_at")
+
+    def get_vendor(self, obj):
+        return obj.vendor.name
+
+    get_vendor.short_description = "Vendor"
+
+
+class CurrencyCodeAdmin(admin.ModelAdmin):
+    ordering = ["code"]
+    list_display = ("uuid", "code")
+
+
+class CurrencyDataAdmin(admin.ModelAdmin):
+    ordering = ["currency_code__code"]
+    list_display = ("uuid", "country", "currency_name", "currency_code")
+
+
+class TagAdmin(admin.ModelAdmin):
+    ordering = ["name"]
+    list_display = ("uuid", "name", "created_at")
+
+
+# Admin views for the Transaction model
+class TransactionAdmin(admin.ModelAdmin):
+    ordering = ["-date"]
+    list_display = (
+        "uuid",
+        "user",
+        "date",
+        "amount",
+        "type",
+        "currency",
+        "item",
+        "quantity",
+        "vendor",
+        "branch",
+        "category",
+        "tag_list",
+        "linked_transaction",
+        "payment_method",
+        "comment",
+    )
+    list_filter = [
+        "type",
+    ]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related("transactiontag_set__tag")
+
+    def tag_list(self, obj):
+        return ", ".join(
+            [
+                str(transaction_tag.tag.name)
+                for transaction_tag in obj.transactiontag_set.all()
+            ]
+        )
+
+
+# Admin views for the TransactionTag model
+class TransactionTagAdmin(admin.ModelAdmin):
+    list_display = ("uuid", "transaction", "tag", "created_at")
+    list_filter = ("tag",)
 
 
 # Register the models and their associated admin classes
-admin.site.register(Transaction, TransactionAdmin)
 admin.site.register(Category, CategoryAdmin)
-admin.site.register(Currency)
+admin.site.register(Branch, BranchAdmin)
+admin.site.register(Vendor, VendorAdmin)
+admin.site.register(CurrencyCode, CurrencyCodeAdmin)
+admin.site.register(CurrencyData, CurrencyDataAdmin)
+admin.site.register(Tag, TagAdmin)
+admin.site.register(Transaction, TransactionAdmin)
+admin.site.register(TransactionTag, TransactionTagAdmin)
