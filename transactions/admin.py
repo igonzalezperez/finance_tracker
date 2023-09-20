@@ -7,12 +7,18 @@ from .models import (
     Transaction,
     TransactionTag,
     Category,
+    ParentCategory,
     Branch,
 )
 
 
+class ParentCategoryAdmin(admin.ModelAdmin):
+    ordering = ["name"]
+    list_display = ("uuid", "name", "created_at")
+
+
 class CategoryAdmin(admin.ModelAdmin):
-    ordering = ["parent"]
+    ordering = ["parent", "name"]
     list_display = ("uuid", "parent", "name", "created_at")
 
 
@@ -89,6 +95,7 @@ class TransactionTagAdmin(admin.ModelAdmin):
 
 
 # Register the models and their associated admin classes
+admin.site.register(ParentCategory, ParentCategoryAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Branch, BranchAdmin)
 admin.site.register(Vendor, VendorAdmin)
