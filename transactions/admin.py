@@ -64,6 +64,7 @@ class TransactionAdmin(admin.ModelAdmin):
         "currency",
         "item",
         "quantity",
+        "brand",
         "vendor",
         "branch",
         "category",
