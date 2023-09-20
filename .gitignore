@@ -45,6 +45,7 @@ venv/
 *.dump
 .env
 node_modules
+*.csv
 
 # OS generated
 *.DS_Store?
