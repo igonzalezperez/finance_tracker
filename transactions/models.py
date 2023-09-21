@@ -204,6 +204,7 @@ class Transaction(BaseModel):
         Tag,
         blank=True,
         verbose_name="Tags",
+        related_name="transactions",
     )
     receipt = models.FileField(
         upload_to="receipts/",

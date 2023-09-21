@@ -18,13 +18,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 
-from django.urls import re_path
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
 from transactions import views
-from rest_framework.authtoken.views import obtain_auth_token
 
 
 schema_view = get_schema_view(
@@ -43,49 +41,21 @@ schema_view = get_schema_view(
 urlpatterns = [
     path("admin/", admin.site.urls),
     path(
-        "swagger<format>/", schema_view.without_ui(cache_timeout=0), name="schema-json"
+        "swagger<format>/",
+        schema_view.without_ui(cache_timeout=0),
+        name="schema-json",
     ),
     path(
         "swagger/",
         schema_view.with_ui("swagger", cache_timeout=0),
         name="schema-swagger-ui",
     ),
-    path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
     path(
-        "api/v1/validate-token/",
-        views.ValidateTokenView.as_view(),
-        name="validate-token",
+        "redoc/",
+        schema_view.with_ui("redoc", cache_timeout=0),
+        name="schema-redoc",
     ),
-    path("api/v1/api-token-auth/", obtain_auth_token, name="api_token_auth"),
-    path(
-        "",
-        views.TransactionList.as_view(),
-        name="Home",
-    ),
-    path(
-        "api/v1/transactions-list/",
-        views.TransactionList.as_view(),
-        name="transactions-list",
-    ),
-    path(
-        "api/v1/transactions/<int:pk>/",
-        views.TransactionDetail.as_view(),
-        name="transaction-detail",
-    ),
-    path(
-        "api/v1/field-metadata/",
-        views.FieldsMetadataView.as_view(),
-        name="field_metadata",
-    ),
-    path(
-        "api/v1/metadata/<str:model_name>/",
-        views.ModelMetadataView.as_view(),
-    ),
-    path(
-        "api/v1/transactions/add/",
-        views.AddTransactionView.as_view(),
-        name="add-transaction",
-    ),
+    path("", include("transactions.urls")),
 ]
 
 if settings.DEBUG:
