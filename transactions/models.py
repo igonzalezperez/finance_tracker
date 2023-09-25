@@ -13,8 +13,8 @@ class BaseModel(models.Model):
     )
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False)
-    deleted_at = models.DateTimeField(null=True, blank=True, editable=False)
     is_deleted = models.BooleanField(default=False, editable=False)
+    deleted_at = models.DateTimeField(null=True, blank=True, editable=False)
     created_by = models.ForeignKey(
         get_user_model(),
         on_delete=models.SET_NULL,
@@ -205,13 +205,14 @@ class Transaction(BaseModel):
         blank=True,
         verbose_name="Tags",
         related_name="transactions",
+        through="TransactionTag",
     )
     receipt = models.FileField(
         upload_to="receipts/",
         blank=True,
         null=True,
         verbose_name="Receipt",
-    )  # Assuming image receipts
+    )
     linked_transaction = models.ForeignKey(
         "self",
         on_delete=models.SET_NULL,
@@ -219,12 +220,12 @@ class Transaction(BaseModel):
         null=True,
         verbose_name="Linked Transaction",
         to_field="uuid",
-    )  # Link to another transaction if needed
+    )
     payment_method = models.CharField(
         max_length=50,
         blank=True,
         verbose_name="Payment Method",
-    )  # Can be expanded with choices if required
+    )
     comment = models.TextField(
         blank=True,
         verbose_name="Comment",
