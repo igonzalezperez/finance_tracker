@@ -1,115 +1,92 @@
-from rest_framework import serializers
-from .models import (
-    Transaction,
-    CurrencyCode,
-    Vendor,
-    Branch,
-    Category,
-    Tag,
-    TransactionTag,
-)
 from django.contrib.auth import get_user_model
+from django.db import transaction
+from rest_framework import serializers
 
-
-class CurrencyCodeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CurrencyCode
-        fields = ["code"]
-
-
-class VendorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Vendor
-        fields = ["name"]
-
-
-class BranchSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Branch
-        fields = ["name"]
-
-
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category
-        fields = ["name"]
-
-
-class TagSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tag
-        fields = ["name"]
-
-
-class TransactionTagSerializer(serializers.ModelSerializer):
-    tag = TagSerializer()
-
-    class Meta:
-        model = TransactionTag
-        fields = ["tag"]
-
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = get_user_model()
-        fields = ["username"]
+from .models import Branch, Category, CurrencyCode, Tag, Transaction, Vendor
 
 
 class TransactionSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
-    currency = CurrencyCodeSerializer()
-    vendor = VendorSerializer()
-    branch = BranchSerializer()
-    category = CategorySerializer()
-    tags = serializers.SerializerMethodField()
+    user = serializers.SlugRelatedField(
+        slug_field="username",
+        queryset=get_user_model().objects.all(),
+    )
+    currency = serializers.SlugRelatedField(
+        slug_field="code", queryset=CurrencyCode.objects.all()
+    )
+    vendor = serializers.SlugRelatedField(
+        slug_field="name", queryset=Vendor.objects.all()
+    )
+    branch = serializers.SlugRelatedField(
+        slug_field="name", queryset=Branch.objects.all()
+    )
+    category = serializers.SlugRelatedField(
+        slug_field="name", queryset=Category.objects.all()
+    )
+    tags = serializers.SlugRelatedField(
+        many=True,
+        queryset=Tag.objects.all(),
+        slug_field="name",
+    )
     linked_transaction = serializers.PrimaryKeyRelatedField(
-        queryset=Transaction.objects.all(), allow_null=True
+        queryset=Transaction.objects.all(), allow_null=True, required=False
     )
 
     class Meta:
         model = Transaction
-        single_fields = [
-            "user",
-            "currency",
+        fields = [
+            "uuid",
+            "date",
+            "type",
+            "amount",
+            "item",
+            "quantity",
+            "brand",
             "vendor",
             "branch",
             "category",
+            "tags",
+            "currency",
+            "payment_method",
+            "receipt",
             "linked_transaction",
+            "comment",
+            "user",
+            "created_at",
+            "updated_at",
+            "is_deleted",
+            "deleted_at",
+            "created_by",
+            "updated_by",
         ]
-        multi_fields = ["tags"]
-        fields = single_fields + multi_fields
 
-    def to_representation(self, obj):
-        representation = super().to_representation(obj)
-        for field in self.Meta.single_fields:
-            field_obj = getattr(obj, field, None)
-            if field == "user":
-                representation[field] = getattr(field_obj, "username", None)
-            elif field == "currency":
-                representation[field] = getattr(field_obj, "code", None)
-            else:
-                if field_obj:
-                    representation[field] = getattr(field_obj, "name", None)
-        return representation
+    def __init__(self, *args, **kwargs):
+        super(TransactionSerializer, self).__init__(*args, **kwargs)
+        request = self.context.get("request")
+        if request and request.method == "PUT":
+            self.fields["user"].read_only = True
 
-    def get_tags(self, obj):
-        return [tag_rel.tag.name for tag_rel in obj.transactiontag_set.all()]
-
+    @transaction.atomic
     def create(self, validated_data):
-        tags_data = validated_data.pop("tags")
+        tag_names = validated_data.pop("tags")
         transaction = Transaction.objects.create(**validated_data)
-        for tag_data in tags_data:
-            tag, _ = Tag.objects.get_or_create(**tag_data)
-            transaction.tags.add(tag)
+
+        tags_to_add = []
+
+        for tag_name in tag_names:
+            tag, _ = Tag.objects.get_or_create(name=tag_name)
+            tags_to_add.append(tag)
+
+        transaction.tags.add(*tags_to_add)
         return transaction
 
     def update(self, instance, validated_data):
-        tags_data = validated_data.pop("tags")
+        tag_names = []
+        if "tags" in validated_data:
+            tag_names = validated_data.pop("tags")
         instance = super().update(instance, validated_data)
-
-        instance.tags.clear()
-        for tag_data in tags_data:
-            tag, _ = Tag.objects.get_or_create(**tag_data)
-            instance.tags.add(tag)
-
+        if tag_names:
+            instance.tags.clear()
+            for tag_name in tag_names:
+                tag, _ = Tag.objects.get_or_create(name=tag_name)
+                instance.tags.add(tag)
         return instance
