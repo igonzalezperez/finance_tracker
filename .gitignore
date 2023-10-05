@@ -53,3 +53,4 @@ ehthumbs.db
 Icon?
 Thumbs.db
 .pylintrc
+.pdm-python

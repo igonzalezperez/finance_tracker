@@ -1,0 +1,59 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+    -   id: trailing-whitespace
+    -   id: check-json
+
+-   repo: https://github.com/pycqa/isort
+    rev: 5.11.5
+    hooks:
+      - id: isort
+        name: isort (python)
+        args: ["--profile=black", "--line-length=88"]
+
+# Using this mirror lets us use mypyc-compiled black, which is about 2x faster
+-   repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 23.9.1
+    hooks:
+      - id: black
+        # It is recommended to specify the latest version of Python
+        # supported by your project here, or alternatively use
+        # pre-commit's default_language_version, see
+        # https://pre-commit.com/#top_level-default_language_version
+        language_version: python3.11
+
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.5.1
+    hooks:
+    -   id: mypy
+        additional_dependencies: [
+          'django-stubs==4.2.4',
+          'python-decouple==3.8',
+          'django-debug-toolbar==4.2.0',
+          'djangorestframework==3.14.0',
+          'drf-yasg==1.21.7',
+          'django-cors-headers==4.2.0',
+          ]
+        args: ["--ignore-missing-imports"]
+
+-   repo: https://github.com/pycqa/flake8
+    rev: 6.1.0
+    hooks:
+    -   id: flake8
+        args: ["--extend-ignore=E203,W503", "--max-line-length=88"]
+
+-   repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
+    hooks:
+    -   id: bandit
+        args: ["-ll"]
+
+-   repo: local
+    hooks:
+    -   id: django-tests
+        name: Run Django Tests
+        entry: python manage.py test
+        language: system
+        pass_filenames: false
+        types: [python]
