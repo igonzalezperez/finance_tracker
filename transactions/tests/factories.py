@@ -1,16 +1,22 @@
+"""
+Create mock data factories for each model
+"""
 import random
+import uuid
+
 import factory
 from django.contrib.auth import get_user_model
+
 from transactions.models import (
-    Vendor,
     Branch,
+    Category,
     CurrencyCode,
     CurrencyData,
     ParentCategory,
-    Category,
     Tag,
     Transaction,
     TransactionTag,
+    Vendor,
 )
 
 
@@ -98,6 +104,7 @@ class TransactionFactory(factory.django.DjangoModelFactory):
     category = factory.SubFactory(CategoryFactory)
     payment_method = factory.Faker("credit_card_provider")
     comment = factory.Faker("text")
+    linked_transaction = uuid.uuid4()
 
     @factory.post_generation
     def tags(self, create, extracted, **kwargs):

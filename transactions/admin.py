@@ -1,14 +1,15 @@
 from django.contrib import admin
+
 from .models import (
-    Vendor,
+    Branch,
+    Category,
     CurrencyCode,
     CurrencyData,
+    ParentCategory,
     Tag,
     Transaction,
     TransactionTag,
-    Category,
-    ParentCategory,
-    Branch,
+    Vendor,
 )
 
 
@@ -34,7 +35,7 @@ class BranchAdmin(admin.ModelAdmin):
     def get_vendor(self, obj):
         return obj.vendor.name
 
-    get_vendor.short_description = "Vendor"
+    setattr(get_vendor, "short_description", "Vendor")
 
 
 class CurrencyCodeAdmin(admin.ModelAdmin):
@@ -78,7 +79,8 @@ class TransactionAdmin(admin.ModelAdmin):
     ]
 
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related("transactiontag_set__tag")
+        queryset = super().get_queryset(request)
+        return queryset.prefetch_related("transactiontag_set__tag")
 
     def tag_list(self, obj):
         return ", ".join(

@@ -1,11 +1,21 @@
+"""
+Serializers for model classes
+"""
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.utils import timezone
 from rest_framework import serializers
 
 from .models import Branch, Category, CurrencyCode, Tag, Transaction, Vendor
 
 
 class TransactionSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Transaction model.
+    Handles serialization and deserialization of Transaction instances,
+    including custom create and update methods.
+    """
+
     user = serializers.SlugRelatedField(
         slug_field="username",
         queryset=get_user_model().objects.all(),
@@ -26,9 +36,6 @@ class TransactionSerializer(serializers.ModelSerializer):
         many=True,
         queryset=Tag.objects.all(),
         slug_field="name",
-    )
-    linked_transaction = serializers.PrimaryKeyRelatedField(
-        queryset=Transaction.objects.all(), allow_null=True, required=False
     )
 
     class Meta:
@@ -60,15 +67,24 @@ class TransactionSerializer(serializers.ModelSerializer):
         ]
 
     def __init__(self, *args, **kwargs):
-        super(TransactionSerializer, self).__init__(*args, **kwargs)
+        """
+        Initialize the serializer.
+        Set the user field to read-only for PUT requests to prevent
+        unauthorized changes.
+        """
+        super().__init__(*args, **kwargs)
         request = self.context.get("request")
         if request and request.method == "PUT":
             self.fields["user"].read_only = True
 
     @transaction.atomic
     def create(self, validated_data):
+        """
+        Custom create method to handle related fields like tags.
+        Using transaction.atomic to ensure database integrity.
+        """
         tag_names = validated_data.pop("tags")
-        transaction = Transaction.objects.create(**validated_data)
+        new_transactions = Transaction.objects.create(**validated_data)
 
         tags_to_add = []
 
@@ -76,17 +92,24 @@ class TransactionSerializer(serializers.ModelSerializer):
             tag, _ = Tag.objects.get_or_create(name=tag_name)
             tags_to_add.append(tag)
 
-        transaction.tags.add(*tags_to_add)
-        return transaction
+        new_transactions.tags.add(*tags_to_add)
+        return new_transactions
 
     def update(self, instance, validated_data):
+        """
+        Custom update method to handle soft deletion and related fields like
+        tags.
+        """
         tag_names = []
         if "tags" in validated_data:
             tag_names = validated_data.pop("tags")
+
         instance = super().update(instance, validated_data)
+
         if tag_names:
             instance.tags.clear()
             for tag_name in tag_names:
                 tag, _ = Tag.objects.get_or_create(name=tag_name)
                 instance.tags.add(tag)
+
         return instance
