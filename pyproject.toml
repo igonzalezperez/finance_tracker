@@ -7,7 +7,6 @@ requires-python = ">=3.11"
 readme = "README.md"
 license = { text = "Proprietary" }
 keywords = ["finance", "tracker", "django", "react"]
-
 # homepage = "https://github.com/igonzalezperez/finance_tracker"
 
 dependencies = [
@@ -48,3 +47,6 @@ plugins = ["mypy_django_plugin.main"]
 
 [tool.django-stubs]
 django_settings_module = "finance_tracker.settings"
+
+[tool.setuptools]
+py-modules = []
