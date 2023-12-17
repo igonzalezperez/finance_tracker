@@ -20,12 +20,18 @@ This project uses PDM for dependency management.
    git clone https://github.com/igonzalezperez/finance_tracker.git
    ```
 2. **Install dependencies:**
+   If pdm isn't installed, use `pip install pdm` first.
    ```bash
    pdm install
    ```
 3. **Usage:**
+   You'll need to have a secret key as an env variable, you can create one with:
    ```
-   cd ./finance_tracker
+   import secrets
+   print(secrets.token_urlsafe(50))
+   ```
+   Then paste that into a .env file (follow the .env.example file)
+   ```
    pdm run python manage.py migrate
    pdm run  python manage.py runserver
    ```
