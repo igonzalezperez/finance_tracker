@@ -3,8 +3,17 @@ image: python:3.11-slim
 stages:
   - format
 
+before_script:
+  - pip install pdm
+  - pdm config set python.use_venv false
+  - pdm install
+
+isort:
+  stage: format
+  script:
+    - pdm run isort --profile=black --line-length=88 --check-only .
+
 black:
   stage: format
   script:
-    - pip install black
-    - black --check .
+    - pdm run black --check .
