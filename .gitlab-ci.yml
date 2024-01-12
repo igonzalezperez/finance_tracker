@@ -5,7 +5,7 @@ stages:
 
 before_script:
   - pip install pdm
-  - pdm config set python.use_venv false
+  - pdm config use_venv no
   - pdm install
 
 isort:
