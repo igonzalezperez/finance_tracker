@@ -1,6 +1,10 @@
-run_tests:
-    image: python:3.11-slim
-    before_script:
-        - apt-get update && apt-get install make
-    script:
-        - make test
+image: python:3.11-slim
+
+stages:
+  - format
+
+black:
+  stage: format
+  script:
+    - pip install black
+    - black --check .
