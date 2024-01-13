@@ -11,4 +11,4 @@ code_quality:
   stage: code_quality
   script:
     - export DJANGO_SECRET_KEY=$DJANGO_SECRET_KEY
-    - pre-commit run --all-files
+    - pdm run pre-commit run --all-files
