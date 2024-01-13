@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 
 from django.db import models
 from django.db.models import Manager, QuerySet
@@ -88,9 +88,10 @@ class TransactionBaseTestCase(APITestCase):
         :return: The processed field value
         """
         if isinstance(
-            value, (QuerySet, Manager)
+            value, (QuerySet[models.Model], Manager)  # type: ignore
         ):  # Handle Many-to-Many and reverse Foreign Key fields
-            return [item.name for item in value.all()]
+            items = value.all()
+            return [item.name if hasattr(item, "name") else None for item in items]
         elif isinstance(
             value, models.Model
         ):  # Handle Foreign Key and One-to-One fields
@@ -113,11 +114,10 @@ class TransactionBaseTestCase(APITestCase):
         :return: The processed value for the related model field
         """
         if field_name in ("user", "created_by", "updated_by", "deleted_by"):
-            return value.username
-        elif field_name == "currency":
-            return value.code
-        else:
-            return value.name
+            return value.username if hasattr(value, "username") else None
+        if field_name == "currency":
+            return value.code if hasattr(value, "code") else None
+        return value.name if hasattr(value, "name") else None
 
     def model_to_dict(self, obj: models.Model) -> Dict[str, Any]:
         """
@@ -185,17 +185,17 @@ class TransactionBaseTestCase(APITestCase):
         included during comparison, defaults to None.
         """
         if exclude_fields is None:
-            exclude_fields = set()
+            exclude_fields = []
         else:
-            exclude_fields = set(exclude_fields)
+            exclude_fields = list(set(exclude_fields))
 
         if include_fields is None:
-            include_fields = set(field.name for field in self.fields)
+            include_fields = list(set(field.name for field in self.fields))
         else:
-            include_fields = set(include_fields)
+            include_fields = list(set(include_fields))
 
         # Compute the set of fields to actually check
-        fields_to_check = include_fields - exclude_fields
+        fields_to_check: Set[str] = set(include_fields) - set(exclude_fields)
 
         for field_name in fields_to_check:
             self.assertEqual(
@@ -282,7 +282,7 @@ class TransactionCRUDTests(TransactionBaseTestCase):
         self.assert_equal_fields(
             tr,
             new_tr,
-            ("is_deleted", "deleted_at", "updated_at"),
+            ["is_deleted", "deleted_at", "updated_at"],
         )
 
         self.assertTrue(new_tr.is_deleted)
