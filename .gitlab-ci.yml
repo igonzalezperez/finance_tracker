@@ -11,8 +11,4 @@ code_quality:
   stage: code_quality
   script:
     - export DJANGO_SECRET_KEY=$DJANGO_SECRET_KEY
-    - pdm run isort --profile=black --line-length=88 --check-only .
-    - pdm run black --check .
-    - pdm run mypy . --ignore-missing-imports
-    - pdm run flake8 --extend-ignore=E203,W503 --max-line-length=88 --exclude=.venv/
-    - pdm run bandit -r -ll .
+    - pre-commit run --all-files
