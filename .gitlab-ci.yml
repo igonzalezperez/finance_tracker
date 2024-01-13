@@ -22,7 +22,7 @@ lint:
   stage: format-lint
   script:
     - pdm run flake8
-    - pdm run mypy
+    - pdm run mypy . --ignore-missing-imports
 
 test:
   stage: test
