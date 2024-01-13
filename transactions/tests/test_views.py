@@ -362,6 +362,7 @@ class TransactionUnauthorizedTests(TransactionBaseTestCase):
 
     def setUp(self):
         super().setUp()  # run the setUp from TransactionBaseTestCase
+        logger.info("Unauthorized transactions tests.")
         self.client.logout()  # then log out the user
         # Do not authenticate, to test unauthorized access
 
