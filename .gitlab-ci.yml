@@ -8,14 +8,12 @@ before_script:
   - apt-get update && apt-get install -y git
   - pip install pdm
   - pdm install
-  - pwd
-  - git status
   - export DJANGO_SECRET_KEY=$DJANGO_SECRET_KEY
 
 format:
   stage: format-lint
   script:
-    - pdm run isort --check-only .
+    - pdm run isort . --profile black --check-only
     - pdm run black --check .
 
 lint:
@@ -23,6 +21,11 @@ lint:
   script:
     - pdm run flake8
     - pdm run mypy . --ignore-missing-imports
+
+security:
+  stage: format-lint
+  script:
+    - pdm run bandit -c .bandit.yaml -r .
 
 test:
   stage: test
