@@ -12,10 +12,17 @@ before_script:
   - git status
   - export DJANGO_SECRET_KEY=$DJANGO_SECRET_KEY
 
-pre_commit:
+format:
   stage: format-lint
   script:
-    - pdm run pre-commit run --all-files
+    - pdm run isort --check-only .
+    - pdm run black --check .
+
+lint:
+  stage: format-lint
+  script:
+    - pdm run flake8
+    - pdm run mypy
 
 test:
   stage: test
