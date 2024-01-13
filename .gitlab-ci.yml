@@ -1,28 +1,12 @@
-image: python:3.11-slim
-
-stages:
-  - code_quality
-
 before_script:
   - pip install pdm
   - pdm install
 
-isort:
+code_quality:
   stage: code_quality
   script:
+    - export DJANGO_SECRET_KEY=$DJANGO_SECRET_KEY
     - pdm run isort --profile=black --line-length=88 --check-only .
-
-black:
-  stage: code_quality
-  script:
     - pdm run black --check .
-
-mypy:
-  stage: code_quality
-  script:
     - pdm run mypy . --ignore-missing-imports
-
-flake8:
-  stage: code_quality
-  script:
     - flake8 --extend-ignore=E203,W503 --max-line-length=88
