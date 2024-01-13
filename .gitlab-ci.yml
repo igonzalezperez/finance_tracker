@@ -21,3 +21,4 @@ test:
   stage: test
   script:
     - pdm run python manage.py test
+  needs: []
