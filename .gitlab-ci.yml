@@ -25,7 +25,7 @@ lint:
 security:
   stage: format-lint
   script:
-    - pdm run bandit -c .bandit.yaml -r .
+    - pdm run bandit -c .bandit.yml -r .
 
 test:
   stage: test
