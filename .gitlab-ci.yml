@@ -15,3 +15,4 @@ code_quality:
     - pdm run black --check .
     - pdm run mypy . --ignore-missing-imports
     - pdm run flake8 --extend-ignore=E203,W503 --max-line-length=88 --exclude=.venv/
+    - pdm run bandit -r -ll .
