@@ -3,7 +3,7 @@ per-file-ignores =
     */migrations/*: E501
 ignore = E203, E503
 max-line-length = 88
-exclude = 
+exclude =
     .git,
     __pycache__,
     old,

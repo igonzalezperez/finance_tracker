@@ -1,3 +1,4 @@
+import logging
 import uuid
 from typing import Any, Dict, List, Optional, Set
 
@@ -18,6 +19,8 @@ from .factories import (
     UserFactory,
     VendorFactory,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class TransactionBaseTestCase(APITestCase):
