@@ -1,17 +1,23 @@
 image: python:3.11-slim
 
 stages:
-  - code_quality
+  - format-lint
+  - test
 
 before_script:
-  - apt-get update && apt-get install -y git  # For Debian/Ubuntu-based systems
+  - apt-get update && apt-get install -y git
   - pip install pdm
   - pdm install
+  - pwd
+  - git status
+  - export DJANGO_SECRET_KEY=$DJANGO_SECRET_KEY
 
-code_quality:
-  stage: code_quality
+pre_commit:
+  stage: format-lint
   script:
-    - pwd
-    - git status
-    - export DJANGO_SECRET_KEY=$DJANGO_SECRET_KEY
     - pdm run pre-commit run --all-files
+
+test:
+  stage: test
+  script:
+    - pdm run python manage.py test
