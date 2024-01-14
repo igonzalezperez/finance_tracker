@@ -19,8 +19,8 @@ format:
 lint:
   stage: format-lint
   script:
-    - poetry run flake8
-    - poetry run mypy . --ignore-missing-imports
+    - poetry run flake8 .
+    - poetry run mypy .
 
 security:
   stage: format-lint
