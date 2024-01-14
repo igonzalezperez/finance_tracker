@@ -6,7 +6,7 @@ stages:
 
 before_script:
   - export DJANGO_SECRET_KEY=$DJANGO_SECRET_KEY
-  - apt-get update && apt-get install -y git && apt-get install -y git netca
+  - apt-get update && apt-get install -y git netca
   - pip install poetry
   - poetry install --with dev
 
