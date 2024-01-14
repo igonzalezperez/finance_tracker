@@ -1,23 +1,58 @@
-# Use an official Python runtime as a base image
-FROM python:3.8-slim
+# BASE
+FROM python:3.11-slim AS base
+# install gcc
+RUN apt-get update \
+    && apt-get -y install gcc \
+    && rm -rf /var/lib/apt/lists/* 
 
-# Set the working directory
-WORKDIR /usr/src/app
+# DEVELOPMENT
+FROM base AS development
+ENV \
+    PIP_NO_CACHE_DIR=off \
+    PIP_DISABLE_PIP_VERSION_CHECK=on \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    VIRTUAL_ENV=/.venv 
+ENV \
+    POETRY_VIRTUALENVS_CREATE=false \
+    POETRY_VIRTUALENVS_IN_PROJECT=false \
+    POETRY_NO_INTERACTION=1 \
+    POETRY_VERSION=1.6.1
 
-# Install poetry
-RUN pip install poetry
+# install poetry 
+RUN pip install "poetry==$POETRY_VERSION"
+# copy requirements
+COPY poetry.lock pyproject.toml ./
 
-# Copy only requirements to cache them in docker layer
-COPY pyproject.toml poetry.lock ./
+# add venv to path 
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# Install project dependencies
-RUN poetry config virtualenvs.create false && poetry install --no-dev
+# Install python packages
+RUN python -m venv "$VIRTUAL_ENV" \
+    && . "$VIRTUAL_ENV"/bin/activate \
+    && poetry install --no-root
+# COPY entrypoint.sh /entrypoint.sh
+# RUN chmod +x /entrypoint.sh
+EXPOSE 8000
+# Run Application
+CMD ["poetry", "run", "python", "manage.py", "runserver", "0.0.0.0:8000"]
+# ENTRYPOINT ["/entrypoint.sh"]
 
-# Copy the entire project
-COPY . .
+# BUILDER
+FROM development AS builder
+WORKDIR /app
+COPY . . 
+RUN poetry install --without dev
+# export build
+RUN poetry build --format wheel
 
-# Set the environment variables (adjust as necessary)
-ENV DEBUG=True
 
-# Run the application
-CMD ["gunicorn", "finance_tracker.wsgi:application", "--bind", "0.0.0.0:8000", "--reload"]
+# PRODUCTION
+FROM base AS production
+WORKDIR /app 
+COPY --from=builder /app/dist/*.whl ./
+RUN pip install ./*.whl
+RUN rm ./*.whl
+
+# Run Application
+CMD ["poetry", "run", "python", "manage.py", "runserver", "0.0.0.0:8000"]
