@@ -249,7 +249,7 @@ class Transaction(BaseModel):
         verbose_name="Tags",
         related_name="transactions",
         through="TransactionTag",
-    )
+    )  # type: ignore
     receipt = models.FileField(
         upload_to="receipts/",
         blank=True,

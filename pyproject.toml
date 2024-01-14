@@ -30,3 +30,14 @@ bandit = ">=1.7.6"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+python_version = "3.11"
+check_untyped_defs = true
+ignore_missing_imports = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+plugins = ["mypy_django_plugin.main"]
+
+[tool.django-stubs]
+django_settings_module = "finance_tracker.settings"
