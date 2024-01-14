@@ -29,6 +29,14 @@ security:
 
 test:
   stage: test
+  services:
+    - name: postgres:latest
+      alias: db
+  variables:
+    POSTGRES_DB: postgres
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
   script:
+    - until nc -z db 5432; do echo "Waiting for DB"; sleep 1; done  # Waiting for database
     - poetry run python manage.py test
   needs: []
