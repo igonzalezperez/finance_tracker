@@ -39,7 +39,20 @@ class CurrencyCodeFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = CurrencyCode
 
-    code = factory.Sequence(lambda n: f"CR{n}")
+    code = factory.Iterator(
+        [
+            "USD",
+            "EUR",
+            "JPY",
+            "GBP",
+            "AUD",
+            "CAD",
+            "CHF",
+            "CNY",
+            "SEK",
+            "NZD",
+        ]
+    )
 
 
 class CurrencyDataFactory(factory.django.DjangoModelFactory):
