@@ -37,6 +37,7 @@ venv/
 # Databases
 *.db
 *.sqlite3
+data/
 
 # Others
 *.pid
