@@ -6,7 +6,7 @@ stages:
 
 before_script:
   - export DJANGO_SECRET_KEY=$DJANGO_SECRET_KEY
-  - apt-get update && apt-get install -y git netca
+  - apt-get update && apt-get install -y git
   - pip install poetry
   - poetry install --with dev
 
@@ -37,6 +37,7 @@ test:
     POSTGRES_USER: postgres
     POSTGRES_PASSWORD: postgres
   script:
-    - until nc -z db 5432; do echo "Waiting for DB"; sleep 1; done  # Waiting for database
+    - apt-get update && apt-get install -y postgresql-client  # Install pg_isready
+    - until pg_isready -h db -p 5432; do echo "Waiting for DB"; sleep 1; done
     - poetry run python manage.py test
   needs: []
