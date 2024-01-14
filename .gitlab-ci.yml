@@ -5,30 +5,30 @@ stages:
   - test
 
 before_script:
-  - apt-get update && apt-get install -y git
-  - pip install pdm
-  - pdm install
   - export DJANGO_SECRET_KEY=$DJANGO_SECRET_KEY
+  - apt-get update && apt-get install -y git
+  - pip install poetry
+  - poetry install --with dev
 
 format:
   stage: format-lint
   script:
-    - pdm run isort . --profile black --check-only
-    - pdm run black --check .
+    - poetry run isort . --profile black --check-only
+    - poetry run black --check .
 
 lint:
   stage: format-lint
   script:
-    - pdm run flake8
-    - pdm run mypy . --ignore-missing-imports
+    - poetry run flake8
+    - poetry run mypy . --ignore-missing-imports
 
 security:
   stage: format-lint
   script:
-    - pdm run bandit -c .bandit.yml -r .
+    - poetry run bandit -c .bandit.yml -r .
 
 test:
   stage: test
   script:
-    - pdm run python manage.py test
+    - poetry run python manage.py test
   needs: []
