@@ -9,6 +9,7 @@ before_script:
   - export DB_NAME=$DB_NAME
   - export DB_USER=$DB_USER
   - export DB_PASSWORD=$DB_PASSWORD
+  - export DB_HOST=$DB_HOST
   - apt-get update && apt-get install -y git
   - pip install poetry
   - poetry install --with dev
