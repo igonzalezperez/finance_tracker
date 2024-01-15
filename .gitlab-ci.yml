@@ -35,7 +35,7 @@ security:
 test:
   stage: test
   services:
-    - name: postgres:latest
+    - name: postgres:16-alpine
       alias: db
   variables:
     POSTGRES_USER: $DB_USER
