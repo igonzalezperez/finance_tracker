@@ -88,11 +88,11 @@ WSGI_APPLICATION = "finance_tracker.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("DB_NAME", "db_name"),
-        "USER": config("DB_USER", "db_user"),
-        "PASSWORD": config("DB_PASSWORD", "db_password"),
-        "HOST": config("DB_HOST", "localhost"),
-        "PORT": config("DB_PORT", 5432),
+        "NAME": config("DB_NAME", default="db_name"),
+        "USER": config("DB_USER", default="db_user"),
+        "PASSWORD": config("DB_PASSWORD", default="db_password"),
+        "HOST": config("DB_HOST", default="localhost"),
+        "PORT": config("DB_PORT", default=5432, cast=int),
     }
 }
 
