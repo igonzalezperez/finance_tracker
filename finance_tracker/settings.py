@@ -88,14 +88,13 @@ WSGI_APPLICATION = "finance_tracker.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "postgres",
-        "USER": "postgres",
-        "PASSWORD": "postgres",
-        "HOST": "db",
-        "PORT": 5432,
+        "NAME": config("DB_NAME", "db_name"),
+        "USER": config("DB_USER", "db_user"),
+        "PASSWORD": config("DB_PASSWORD", "db_password"),
+        "HOST": config("DB_HOST", "localhost"),
+        "PORT": config("DB_PORT", 5432),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
