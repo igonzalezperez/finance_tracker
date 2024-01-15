@@ -36,9 +36,9 @@ test:
   services:
     - name: postgres:latest
       alias: db
-    variables:
-      POSTGRES_USER: $DB_USER
-      POSTGRES_PASSWORD: $DB_PASSWORD
+  variables:
+    POSTGRES_USER: $DB_USER
+    POSTGRES_PASSWORD: $DB_PASSWORD
   
   script:
     - apt-get update && apt-get install -y postgresql-client  # Install pg_isready
