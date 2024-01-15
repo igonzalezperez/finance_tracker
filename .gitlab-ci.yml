@@ -10,6 +10,7 @@ before_script:
   - export DB_USER=$DB_USER
   - export DB_PASSWORD=$DB_PASSWORD
   - export DB_HOST=$DB_HOST
+  - export DB_PORT=$DB_PORT
   - apt-get update && apt-get install -y git
   - pip install poetry
   - poetry install --with dev
@@ -39,7 +40,7 @@ test:
   variables:
     POSTGRES_USER: $DB_USER
     POSTGRES_PASSWORD: $DB_PASSWORD
-    POSTGRES_DB: db
+    POSTGRES_DB: "db"
   
   script:
     - apt-get update && apt-get install -y postgresql-client  # Install pg_isready
