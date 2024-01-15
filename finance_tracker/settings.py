@@ -92,10 +92,10 @@ DATABASES = {
         "USER": config("DB_USER", default="db_user"),
         "PASSWORD": config("DB_PASSWORD", default="db_password"),
         "HOST": config("DB_HOST", default="localhost"),
-        "PORT": config("DB_PORT", default=5432, cast=str),
+        "PORT": config("DB_PORT", default=5432),
     }
 }
-print(DATABASES)
+
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
