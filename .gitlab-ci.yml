@@ -41,9 +41,10 @@ test:
     POSTGRES_USER: $DB_USER
     POSTGRES_PASSWORD: $DB_PASSWORD
     POSTGRES_DB: "db"
+    POSTGRES_PORT: $DB_PORT
   
   script:
     - apt-get update && apt-get install -y postgresql-client  # Install pg_isready
-    - until pg_isready -h db -p 5432; do echo "Waiting for DB"; sleep 1; done
+    - until pg_isready -h db -p $POSTGRES_PORT; do echo "Waiting for DB"; sleep 1; done
     - poetry run python manage.py test
   needs: []
